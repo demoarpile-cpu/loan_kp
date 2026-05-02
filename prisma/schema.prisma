@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model auditlog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  user      String
+  note      String?
+  entityId  String?
+  createdAt DateTime @default(now())
+}
+
+model installment {
+  id        Int      @id @default(autoincrement())
+  reference String   @unique(map: "Installment_reference_key")
+  amount    Float
+  paidAmount Float   @default(0)
+  status    String   @default("PENDING")
+  dueDate   DateTime
+  loanId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  note      String?   @db.Text
+  loan      loan     @relation(fields: [loanId], references: [id], map: "Installment_loanId_fkey")
+
+  @@index([loanId], map: "Installment_loanId_fkey")
+}
+
+model loan {
+  id            Int           @id @default(autoincrement())
+  reference     String        @unique(map: "Loan_reference_key")
+  amount        Float
+  status        String        @default("pending")
+  userId        Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  company       String
+  employeeEmail String
+  employeeName  String
+  stage         String        @default("SUBMITTED")
+  metadata      Json?
+  documentUrls  Json?
+  installment   installment[]
+  user          user          @relation(fields: [userId], references: [id], map: "Loan_userId_fkey")
+
+  @@index([userId], map: "Loan_userId_fkey")
+}
+
+model user {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique(map: "User_email_key")
+  password  String
+  name      String?
+  phone     String?
+  avatarUrl String?
+  role      String   @default("employee")
+  company   String?
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  loan      loan[]
+}
+
+model company {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  employees   Int      @default(0)
+  status      String   @default("Active")
+  creditLimit String   @default("R 0")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
