@@ -345,7 +345,8 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
         role,
         company,
         password: hashedPassword,
-        status: status || 'Active'
+        status: status || 'Active',
+        updatedAt: new Date()
       }
     });
 

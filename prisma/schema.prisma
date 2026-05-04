@@ -25,7 +25,7 @@ model installment {
   dueDate   DateTime
   loanId    Int
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   note      String?   @db.Text
   loan      loan     @relation(fields: [loanId], references: [id], map: "Installment_loanId_fkey")
 
@@ -39,7 +39,7 @@ model loan {
   status        String        @default("pending")
   userId        Int
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   company       String
   employeeEmail String
   employeeName  String
@@ -63,7 +63,7 @@ model user {
   company   String?
   status    String   @default("Active")
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   loan      loan[]
 }
 
