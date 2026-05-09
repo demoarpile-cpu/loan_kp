@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const password = await bcrypt.hash('password123', 10);
-  
+
   const roles = [
     'employee',
     'hr',

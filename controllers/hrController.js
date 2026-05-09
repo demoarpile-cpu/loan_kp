@@ -407,3 +407,67 @@ exports.getRemittances = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.getCompanyProfile = async (req, res) => {
+  if (req.user.role !== 'hr' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const companyName = req.user.role === 'hr' ? req.user.company : req.query.name;
+
+  if (!companyName) {
+      return res.status(400).json({ message: 'Company name required. Your user account may not have a company assigned.' });
+  }
+
+  try {
+    let company = await prisma.company.findUnique({
+      where: { name: companyName }
+    });
+
+    // Auto-create company record if it only exists as a user field
+    if (!company) {
+      const employeeCount = await prisma.user.count({ where: { company: companyName } });
+      company = await prisma.company.create({
+        data: {
+          name: companyName,
+          employees: employeeCount,
+          status: 'Active',
+          creditLimit: 'R 0'
+        }
+      });
+    }
+
+    res.json(company);
+  } catch (error) {
+    console.error('getCompanyProfile error:', error);
+    res.status(500).json({ message: 'Server error: ' + error.message });
+  }
+};
+
+exports.updateCompanyProfile = async (req, res) => {
+  if (req.user.role !== 'hr' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const companyName = req.user.role === 'hr' ? req.user.company : req.body.companyName;
+  const { address, contactPeople, divisions, specimenSignatureUrl, authorizedSignatories } = req.body;
+
+  try {
+    const updated = await prisma.company.update({
+      where: { name: companyName },
+      data: {
+        address,
+        contactPeople,
+        divisions,
+        specimenSignatureUrl,
+        authorizedSignatories,
+        updatedAt: new Date()
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

@@ -46,6 +46,8 @@ model loan {
   stage         String        @default("SUBMITTED")
   metadata      Json?
   documentUrls  Json?
+  kickbackRate  Float?
+  discountRate  Float?
   installment   installment[]
   user          user          @relation(fields: [userId], references: [id], map: "Loan_userId_fkey")
 
@@ -68,11 +70,18 @@ model user {
 }
 
 model company {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  employees   Int      @default(0)
-  status      String   @default("Active")
-  creditLimit String   @default("R 0")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                    Int      @id @default(autoincrement())
+  name                  String   @unique
+  employees             Int      @default(0)
+  status                String   @default("Active")
+  creditLimit           String   @default("R 0")
+  address               String?
+  contactPeople         Json?
+  divisions             Json?
+  specimenSignatureUrl  String?  @db.LongText
+  authorizedSignatories Json?
+  kickbackRate          Float?
+  discountRate          Float?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }

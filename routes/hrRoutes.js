@@ -13,6 +13,7 @@ router.get('/dashboard', hrController.getDashboardData);
 router.get('/verifications', hrController.getVerifications);
 router.get('/employees', hrController.getEmployees);
 router.patch('/verifications/:id/status', hrController.updateVerificationStatus);
-router.get('/remittances', hrController.getRemittances);
+router.get('/company', hrController.getCompanyProfile);
+router.patch('/company', hrController.updateCompanyProfile);
 
 module.exports = router;

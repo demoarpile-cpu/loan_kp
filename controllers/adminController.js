@@ -286,7 +286,14 @@ exports.getAllCompanies = async (req, res) => {
         name: ec.name,
         employees: employeeCount,
         status: ec.status,
-        creditLimit: ec.creditLimit
+        creditLimit: ec.creditLimit,
+        address: ec.address,
+        contactPeople: ec.contactPeople,
+        divisions: ec.divisions,
+        specimenSignatureUrl: ec.specimenSignatureUrl,
+        authorizedSignatories: ec.authorizedSignatories,
+        kickbackRate: ec.kickbackRate,
+        discountRate: ec.discountRate
       });
     }
 
@@ -302,23 +309,30 @@ exports.createCompany = async (req, res) => {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { name, creditLimit } = req.body;
+  const { name, creditLimit, address, contactPeople, divisions, specimenSignatureUrl, authorizedSignatories, kickbackRate, discountRate } = req.body;
 
   try {
     const newCompany = await prisma.company.create({
       data: {
         name,
         creditLimit: creditLimit || 'R 0',
-        status: 'Active'
+        status: 'Active',
+        address,
+        contactPeople,
+        divisions,
+        specimenSignatureUrl,
+        authorizedSignatories,
+        kickbackRate: kickbackRate ? parseFloat(kickbackRate) : null,
+        discountRate: discountRate ? parseFloat(discountRate) : null
       }
     });
     res.status(201).json(newCompany);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating company:", error);
     if (error.code === 'P2002') {
       return res.status(400).json({ message: 'Company already exists' });
     }
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 };
 
@@ -328,24 +342,37 @@ exports.updateCompany = async (req, res) => {
   }
 
   const { id } = req.params;
-  const { name, creditLimit, status } = req.body;
+  const { name, creditLimit, status, address, contactPeople, divisions, specimenSignatureUrl, authorizedSignatories, kickbackRate, discountRate } = req.body;
 
   try {
     const idInt = parseInt(id);
     let updated;
 
+    const data = {
+      name,
+      creditLimit,
+      status,
+      address,
+      contactPeople,
+      divisions,
+      specimenSignatureUrl,
+      authorizedSignatories,
+      kickbackRate: kickbackRate ? parseFloat(kickbackRate) : null,
+      discountRate: discountRate ? parseFloat(discountRate) : null
+    };
+
     if (isNaN(idInt)) {
       // It's a legacy company (name as ID)
       updated = await prisma.company.upsert({
         where: { name: id },
-        update: { name, creditLimit, status },
-        create: { name, creditLimit, status }
+        update: data,
+        create: { ...data, status: status || 'Active' }
       });
     } else {
       // It's a real company record
       updated = await prisma.company.update({
         where: { id: idInt },
-        data: { name, creditLimit, status }
+        data
       });
     }
     res.json(updated);

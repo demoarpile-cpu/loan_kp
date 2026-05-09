@@ -24,6 +24,11 @@ exports.apply = async (req, res) => {
       });
     }
 
+    // Fetch company defaults for rates
+    const company = await prisma.company.findUnique({
+      where: { name: eInfo.employerName || 'Unknown' }
+    });
+
     const loan = await prisma.loan.create({
       data: {
         reference: `LMS-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
@@ -34,6 +39,8 @@ exports.apply = async (req, res) => {
         employeeName: `${pInfo.name} ${pInfo.surname}`.trim() || 'Unknown',
         status: 'pending',
         stage: 'SUBMITTED',
+        kickbackRate: company?.kickbackRate || 0,
+        discountRate: company?.discountRate || 0,
         updatedAt: new Date(),
         metadata: {
           personalInfo: pInfo,
